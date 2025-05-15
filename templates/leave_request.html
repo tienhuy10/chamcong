@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <h1 class="m-0"><i class="fas fa-calendar-alt mr-2"></i>Xin nghỉ phép</h1>
+    </div>
+</div>
+<div class="container-fluid">
+    <!-- Toast thông báo -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+        {% for category, message in messages %}
+        <div class="toast align-items-center text-white {% if category == 'success' %}bg-success{% elif category == 'danger' %}bg-danger{% else %}bg-warning{% endif %} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <!-- Form xin nghỉ -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title"><i class="fas fa-file-alt mr-2"></i>Gửi đơn xin nghỉ</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="leaveRequestForm">
+                        <div class="form-group mb-3">
+                            <label for="leave_date"><i class="fas fa-calendar-day mr-1"></i>Ngày nghỉ</label>
+                            <input type="date" name="leave_date" id="leave_date" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="leave_period"><i class="fas fa-clock mr-1"></i>Buổi nghỉ</label>
+                            <select name="leave_period" id="leave_period" class="form-control" required>
+                                <option value="Cả ngày">Cả ngày</option>
+                                <option value="Sáng">Sáng</option>
+                                <option value="Chiều">Chiều</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="reason"><i class="fas fa-comment mr-1"></i>Lý do</label>
+                            <textarea name="reason" id="reason" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="contact_info"><i class="fas fa-phone mr-1"></i>Thông tin liên hệ (tùy chọn)</label>
+                            <input type="text" name="contact_info" id="contact_info" class="form-control" placeholder="Số điện thoại hoặc email liên hệ">
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane mr-2"></i>Gửi đơn</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Lịch sử đơn xin nghỉ -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h3 class="card-title"><i class="fas fa-history mr-2"></i>Lịch sử đơn xin nghỉ</h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>Ngày nghỉ</th>
+                                <th>Buổi</th>
+                                <th>Trạng thái</th>
+                                <th>Lý do</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if leave_requests %}
+                            {% for request in leave_requests %}
+                            <tr>
+                                <td>{{ request.leave_date }}</td>
+                                <td>{{ request.leave_period }}</td>
+                                <td>
+                                    {% if request.status == 'Đã duyệt' %}
+                                    <span class="badge bg-success"><i class="fas fa-check mr-1"></i>{{ request.status }}</span>
+                                    {% elif request.status == 'Từ chối' %}
+                                    <span class="badge bg-danger"><i class="fas fa-times mr-1"></i>{{ request.status }}</span>
+                                    {% else %}
+                                    <span class="badge bg-warning"><i class="fas fa-hourglass-half mr-1"></i>{{ request.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ request.reason }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">Chưa có đơn xin nghỉ nào</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script để kích hoạt toast -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    var toastList = toastElList.map(function(toastEl) {
+        return new bootstrap.Toast(toastEl);
+    });
+    toastList.forEach(toast => toast.show());
+});
+</script>
+{% endblock %}

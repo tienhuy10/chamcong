@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <h1 class="m-0">Trang chủ Quản trị viên</h1>
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Tổng số nhân viên</h3>
+                </div>
+                <div class="card-body">
+                    <h2>{{ total_employees }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Thống kê chiến dịch</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="campaignChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Kết quả khảo sát</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Câu hỏi</th>
+                                <th>Trả lời</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for survey in surveys %}
+                            <tr>
+                                <td>{{ survey['question'] }}</td>
+                                <td>{{ survey['response'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('campaignChart').getContext('2d');
+    var campaignChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Đang thực hiện', 'Hoàn thành', 'Chưa bắt đầu'],
+            datasets: [{
+                label: 'Thống kê chiến dịch',
+                data: [
+                    {{ campaigns|selectattr('status', 'equalto', 'Đang thực hiện')|list|length }},
+                    {{ campaigns|selectattr('status', 'equalto', 'Hoàn thành')|list|length }},
+                    {{ campaigns|selectattr('status', 'equalto', 'Chưa bắt đầu')|list|length }}
+                ],
+                backgroundColor: ['#007bff', '#28a745', '#dc3545']
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

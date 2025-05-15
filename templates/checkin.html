@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <h1 class="m-0">Chấm công</h1>
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- Cột phải: Video và form -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Chụp ảnh chấm công</h3>
+                </div>
+                <div class="card-body">
+                    <p>Loại chấm công: <strong>{{ checkin_type }}</strong></p>
+                    {% if is_late %}
+                        <div class="alert alert-warning">
+                            Bạn đang chấm công muộn! Vui lòng nhập ghi chú giải thích.
+                        </div>
+                    {% endif %}
+                    <video id="video" width="100%" autoplay></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    <button id="capture" class="btn btn-primary mt-2">Chụp ảnh</button>
+                    <form method="POST" id="checkin-form">
+                        <input type="hidden" id="photo_data" name="photo_data">
+                        <input type="hidden" name="checkin_type" value="{{ checkin_type }}">
+                        <div class="form-group mt-3">
+                            <label for="note">Ghi chú {% if is_late %}<span class="text-danger">*</span>{% endif %}</label>
+                            <textarea class="form-control" id="note" name="note" rows="4" {% if is_late %}required{% endif %} placeholder="Nhập lý do nếu chấm công muộn..."></textarea>
+                        </div>
+                        <button id="submit" type="submit" class="btn btn-success mt-2" disabled>Xác nhận</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+                <!-- Cột trái: Ảnh chụp -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Ảnh chụp</h3>
+                </div>
+                <div class="card-body">
+                    <img id="preview" style="display: none; width: 100%; max-height: 400px; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/checkin.js') }}"></script>
+{% endblock %}

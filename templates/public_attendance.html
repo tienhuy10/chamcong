@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê chấm công</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <h1>Thống kê chấm công</h1>
+        <p>Khoảng thời gian: {{ 'Theo tuần' if period == 'week' else 'Theo tháng' }}</p>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        {% for employee in employees %}
+                        <th>{{ employee.full_name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for date_str, data in attendance_data.items() %}
+                    <tr>
+                        <td>{{ data.date.strftime('%d/%m/%Y') }}</td>
+                        {% for employee in employees %}
+                        <td class="{% if data.records[employee.id].status == 'Đầy đủ' %}bg-success
+                                   {% elif data.records[employee.id].status == 'Thiếu' %}bg-warning
+                                   {% elif data.records[employee.id].status == 'Nghỉ' %}bg-danger
+                                   {% else %}bg-secondary{% endif %}">
+                            {{ data.records[employee.id].status }}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- Bảng tổng hợp -->
+        <div class="mt-4">
+            <h4>Tổng hợp</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Nhân viên</th>
+                            <th>Tổng ngày công</th>
+                            <th>Số ngày nghỉ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emp_id, data in summary_data.items() %}
+                        <tr>
+                            <td>{{ data.full_name }}</td>
+                            <td>{{ data.days_worked }}</td>
+                            <td>{{ data.days_absent }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

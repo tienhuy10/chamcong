@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <h1 class="m-0">Quản lý đơn xin nghỉ</h1>
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Danh sách đơn xin nghỉ</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Nhân viên</th>
+                                <th>Ngày nghỉ</th>
+                                <th>Buổi</th>
+                                <th>Lý do</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in leave_requests %}
+                            <tr>
+                                <td>{{ request['full_name'] }}</td>
+                                <td>{{ request['leave_date'] }}</td>
+                                <td>{{ request['leave_period'] }}</td>
+                                <td>{{ request['reason'] }}</td>
+                                <td>{{ request['status'] }}</td>
+                                <td>
+                                    <form method="POST">
+                                        <input type="hidden" name="request_id" value="{{ request['id'] }}">
+                                        <select name="status" class="form-control d-inline w-auto">
+                                            <option value="Đã duyệt" {% if request['status'] == 'Đã duyệt' %}selected{% endif %}>Đã duyệt</option>
+                                            <option value="Bị từ chối" {% if request['status'] == 'Bị từ chối' %}selected{% endif %}>Bị từ chối</option>
+                                            <option value="Đang chờ" {% if request['status'] == 'Đang chờ' %}selected{% endif %}>Đang chờ</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-primary btn-sm">Cập nhật</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

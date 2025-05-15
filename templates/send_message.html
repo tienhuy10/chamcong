@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content-header">
+  <div class="container-fluid">
+    <h1 class="m-0">Gửi tin nhắn</h1>
+  </div>
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Soạn tin nhắn</h3>
+        </div>
+        <div class="card-body">
+          <form method="POST">
+            {# CSRF token nếu dùng Flask-WTF #}
+            {% if csrf_token %}
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {% endif %}
+            <div class="form-group">
+              <label>Người nhận</label>
+              <select name="receiver_id" class="form-control" required>
+                {% for user in users %}
+                <option value="{{ user['id'] }}">{{ user['username'] }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Nội dung</label>
+              <textarea name="message" class="form-control" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Gửi</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

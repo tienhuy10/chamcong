@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Nhân Sự</title>
+    <!-- AdminLTE CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="hold-transition sidebar-mini">
+<div class="wrapper">
+    <!-- Navbar -->
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item dropdown">
+                <a class="nav-link" data-toggle="dropdown" href="#">
+                    <i class="far fa-bell"></i>
+                    <span class="badge badge-warning navbar-badge">0</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                    <span class="dropdown-item dropdown-header">Thông báo</span>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item">Chưa có thông báo mới</a>
+                </div>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link" data-toggle="dropdown" href="#">
+                    <i class="far fa-envelope"></i>
+                    <span class="badge badge-warning navbar-badge">0</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                    <span class="dropdown-item dropdown-header">Tin nhắn</span>
+                    <div class="dropdown-divider"></div>
+                    <a href="{{ url_for('send_message') }}" class="dropdown-item">Gửi Tin Nhắn</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('logout') }}">Đăng xuất</a>
+            </li>
+        </ul>
+    </nav>
+    <!-- Sidebar -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="{{ url_for('index') }}" class="brand-link">
+            <span class="brand-text font-weight-light">Quản Lý Nhân Sự</span>
+        </a>
+        <div class="sidebar">
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="info">
+                    <a href="#" class="d-block">{{ current_user.username if current_user.is_authenticated else 'Guest' }}</a>
+                </div>
+            </div>
+            <nav class="mt-2">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+                    {% if current_user.is_authenticated and current_user.role == 'employee' %}
+                    <li class="nav-item">
+                        <a href="{{ url_for('employee_dashboard') }}" class="nav-link">
+                            <i class="nav-icon fas fa-home"></i>
+                            <p>Trang chủ</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('checkin') }}" class="nav-link">
+                            <i class="nav-icon fas fa-clock"></i>
+                            <p>Chấm công</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('leave_request') }}" class="nav-link">
+                            <i class="nav-icon fas fa-calendar-alt"></i>
+                            <p>Xin nghỉ phép</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('work_report') }}" class="nav-link">
+                            <i class="nav-icon fas fa-file-alt"></i>
+                            <p>Báo cáo công việc</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('employee_campaigns') }}" class="nav-link">
+                            <i class="nav-icon fas fa-bullhorn"></i>
+                            <p>Chiến dịch</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('send_message') }}" class="nav-link">
+                            <i class="nav-icon fas fa-envelope"></i>
+                            <p>Gửi tin nhắn</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('employee_survey') }}" class="nav-link">
+                            <i class="nav-icon fas fa-poll"></i>
+                            <p>Khảo sát</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('employee_training') }}" class="nav-link">
+                            <i class="nav-icon fas fa-book"></i>
+                            <p>Đào tạo</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('employee_hybrid_schedule') }}" class="nav-link">
+                            <i class="nav-icon fas fa-calendar"></i>
+                            <p>Lịch làm việc</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('mark_recognition') }}" class="nav-link">
+                            <i class="nav-icon fas fa-star"></i>
+                            <p>Công nhận đồng nghiệp</p>
+                        </a>
+                    </li>
+                    {% elif current_user.is_authenticated and current_user.role == 'admin' %}
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_dashboard') }}" class="nav-link">
+                            <i class="nav-icon fas fa-home"></i>
+                            <p>Trang chủ</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_employees') }}" class="nav-link">
+                            <i class="nav-icon fas fa-users"></i>
+                            <p>Quản lý nhân viên</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_attendance') }}" class="nav-link">
+                            <i class="nav-icon fas fa-clock"></i>
+                            <p>Quản lý chấm công</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_leave_requests') }}" class="nav-link">
+                            <i class="nav-icon fas fa-calendar-alt"></i>
+                            <p>Quản lý đơn xin nghỉ</p>
+                        </a>
+                    </li>
+                    <!-- <li class="nav-item">
+                        <a href="{{ url_for('admin_campaigns') }}" class="nav-link">
+                            <i class="nav-icon fas fa-bullhorn"></i>
+                            <p>Quản lý chiến dịch</p>
+                        </a>
+                    </li> -->
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_data_management') }}" class="nav-link">
+                            <i class="nav-icon fas fa-database"></i>
+                            <p>Quản lý dữ liệu</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_settings') }}" class="nav-link">
+                            <i class="nav-icon fas fa-cog"></i>
+                            <p>Cài đặt</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_ui_settings') }}" class="nav-link">
+                            <i class="nav-icon fas fa-paint-brush"></i>
+                            <p>Cài đặt giao diện</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_training') }}" class="nav-link">
+                            <i class="nav-icon fas fa-book"></i>
+                            <p>Quản lý đào tạo</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_survey') }}" class="nav-link">
+                            <i class="nav-icon fas fa-poll"></i>
+                            <p>Quản lý khảo sát</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_performance') }}" class="nav-link">
+                            <i class="nav-icon fas fa-chart-line"></i>
+                            <p>Quản lý hiệu suất</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_hybrid_schedule') }}" class="nav-link">
+                            <i class="nav-icon fas fa-calendar"></i>
+                            <p>Quản lý lịch làm việc</p>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </aside>
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+        <div class="content">
+            <div class="container-fluid">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} mt-3 alert-dismissible">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    <!-- Footer -->
+    <footer class="main-footer">
+        <strong>Quản Lý Nhân Sự © 2025</strong>
+    </footer>
+</div>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE JS -->
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

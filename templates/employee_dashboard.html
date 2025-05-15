@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <h1 class="m-0">Trang chủ nhân viên</h1>
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Thống kê -->
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3>{{ days_worked }}</h3>
+                    <p>Ngày làm việc</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-calendar"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3>{{ days_absent }}</h3>
+                    <p>Ngày nghỉ</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-close"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Chấm công hôm nay -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Chấm công hôm nay</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Loại</th>
+                                <th>Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Vào Sáng</td>
+                                <td>{{ checkin_times['Vào Sáng'] }}</td>
+                            </tr>
+                            <tr>
+                                <td>Ra Sáng</td>
+                                <td>{{ checkin_times['Ra Sáng'] }}</td>
+                            </tr>
+                            <tr>
+                                <td>Vào Chiều</td>
+                                <td>{{ checkin_times['Vào Chiều'] }}</td>
+                            </tr>
+                            <tr>
+                                <td>Ra Chiều</td>
+                                <td>{{ checkin_times['Ra Chiều'] }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Lịch sử chấm công -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Lịch sử chấm công (7 ngày gần nhất)</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Loại</th>
+                                <th>Ảnh</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in time_records %}
+                            <tr>
+                                <td>{{ record.timestamp }}</td>
+                                <td>{{ record.type }}</td>
+                                <td><img src="{{ url_for('serve_photo', filename=record.photo_path.split('/')[-1]) }}" width="50"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Chiến dịch -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Chiến dịch được giao</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Tên chiến dịch</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Ngày kết thúc</th>
+                                <th>Tiến độ</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for campaign in campaigns %}
+                            <tr>
+                                <td>{{ campaign.name }}</td>
+                                <td>{{ campaign.start_date }}</td>
+                                <td>{{ campaign.end_date }}</td>
+                                <td>{{ campaign.progress }}%</td>
+                                <td>{{ campaign.status }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Đơn xin nghỉ -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Đơn xin nghỉ</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Ngày nghỉ</th>
+                                <th>Thời gian nghỉ</th>
+                                <th>Lý do</th>
+                                <th>Trạng thái</th>
+                                <th>Thời gian gửi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in leave_requests %}
+                            <tr>
+                                <td>{{ request.leave_date }}</td>
+                                <td>{{ request.leave_period }}</td>
+                                <td>{{ request.reason }}</td>
+                                <td>{{ request.status }}</td>
+                                <td>{{ request.timestamp }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Lịch làm việc hybrid -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Lịch làm việc hybrid</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Địa điểm</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for schedule in schedules %}
+                            <tr>
+                                <td>{{ schedule.date }}</td>
+                                <td>{{ schedule.location }}</td>
+                                <td>{{ schedule.status }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

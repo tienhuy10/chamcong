@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manager Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">Manager Dashboard</h1>
+        <h2 class="text-xl mb-2">Users</h2>
+        <div id="users" class="mb-4"></div>
+        <h2 class="text-xl mb-2">Attendance</h2>
+        <div id="attendance" class="mb-4"></div>
+        <h2 class="text-xl mb-2">Leave Requests</h2>
+        <div id="leaves" class="mb-4"></div>
+        <h2 class="text-xl mb-2">Statistics</h2>
+        <img id="chart" class="mb-4">
+        <a href="/api/report/export/csv" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">Export CSV</a>
+        <a href="/api/report/export/pdf" class="bg-blue-500 text-white px-4 py-2 rounded">Export PDF</a>
+    </div>
+    <script>
+        async function loadData() {
+            const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+            
+            // Load users
+            const users = await (await fetch('/api/auth/users', { headers })).json();
+            document.getElementById('users').innerHTML = users.map(u => `
+                <div class="border p-2 mb-2 flex justify-between">
+                    <span>${u.name} (${u.email}) - ${u.department}</span>
+                    <button onclick="deleteUser(${u.id})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+                </div>
+            `).join('');
+            
+            // Load attendance
+            const attendance = await (await fetch('/api/attendance', { headers })).json();
+            document.getElementById('attendance').innerHTML = attendance.map(a => `
+                <div class="border p-2 mb-2">
+                    ${a.name} checked in at ${a.timestamp}
+                    <button onclick="viewImage(${a.id})" class="bg-blue-500 text-white px-2 py-1 rounded">View Image</button>
+                </div>
+            `).join('');
+            
+            // Load leaves
+            const leaves = await (await fetch('/api/leave', { headers })).json();
+            document.getElementById('leaves').innerHTML = leaves.map(l => `
+                <div class="border p-2 mb-2">
+                    ${l.name}: ${l.start_date} to ${l.end_date} (${l.reason}) - ${l.status}
+                    <button onclick="manageLeave(${l.id}, 'approve')" class="bg-green-500 text-white px-2 py-1 rounded">Approve</button>
+                    <button onclick="manageLeave(${l.id}, 'reject')" class="bg-red-500 text-white px-2 py-1 rounded">Reject</button>
+                </div>
+            `).join('');
+            
+            // Load stats
+            const stats = await (await fetch('/api/report/stats', { headers })).json();
+            document.getElementById('chart').src = `data:image/png;base64,${stats.chart}`;
+        }
+        
+        async function deleteUser(id) {
+            if (confirm('Are you sure?')) {
+                await fetch(`/api/auth/users/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                loadData();
+            }
+        }
+        
+        async function viewImage(id) {
+            const data = await (await fetch(`/api/attendance/image/${id}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            })).json();
+            const win = window.open('');
+            win.document.write(`<img src="data:image/jpeg;base64,${data.image}">`);
+        }
+        
+        async function manageLeave(id, action) {
+            await fetch(`/api/leave/${id}/${action}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            loadData();
+        }
+        
+        loadData();
+    </script>
+</body>
+</html>

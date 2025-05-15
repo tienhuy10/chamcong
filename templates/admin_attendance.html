@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Quản lý chấm công</h1>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="content">
+    <div class="container-fluid">
+        <!-- Tabs -->
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <ul class="nav nav-tabs" id="attendanceTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="summary-tab" data-toggle="tab" href="#summary" role="tab" aria-controls="summary" aria-selected="true">Thống kê chấm công</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="details-tab" data-toggle="tab" href="#details" role="tab" aria-controls="details" aria-selected="false">Chi tiết chấm công</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="attendanceTabsContent">
+                    <!-- Tab Thống kê chấm công -->
+                    <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                        <form method="POST" class="form-row mb-3">
+                            <div class="form-group col-md-3">
+                                <label for="period">Khoảng thời gian:</label>
+                                <select name="period" id="period" class="form-control select2">
+                                    <option value="week" {% if period == 'week' %}selected{% endif %}>Theo tuần</option>
+                                    <option value="month" {% if period == 'month' %}selected{% endif %}>Theo tháng</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3 align-self-end">
+                                <button type="submit" class="btn btn-primary mr-2">Xem</button>
+                                <button type="button" id="share-btn" class="btn btn-info">Chia sẻ</button>
+                            </div>
+                        </form>
+                        <div class="callout callout-info" id="share-link-container" style="display: none;">
+                            <h5>Link chia sẻ</h5>
+                            <div class="input-group">
+                                <input type="text" id="share-link" class="form-control" readonly>
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" id="copy-btn">Sao chép</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 120px;">Ngày</th>
+                                        {% for employee in employees %}
+                                        <th>{{ employee.full_name }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for date_str, data in attendance_data.items() %}
+                                    <tr>
+                                        <td>{{ data.date.strftime('%d/%m/%Y') }}</td>
+                                        {% for employee in employees %}
+                                        <td class="{% if data.records[employee.id].status == 'Đầy đủ' %}bg-success
+                                                   {% elif data.records[employee.id].status == 'Thiếu' %}bg-warning
+                                                   {% elif data.records[employee.id].status == 'Nghỉ' %}bg-danger
+                                                   {% else %}bg-secondary{% endif %}"
+                                            data-user-id="{{ employee.id }}"
+                                            data-date="{{ date_str }}">
+                                            {{ data.records[employee.id].status }}
+                                            {% if data.records[employee.id].leave_reason %}
+                                            <small class="d-block" data-toggle="tooltip" title="{{ data.records[employee.id].leave_reason }}">
+                                                ({{ data.records[employee.id].leave_reason|truncate(20) }})
+                                            </small>
+                                            {% endif %}
+                                            {% if data.records[employee.id].note %}
+                                            <small class="d-block text-muted" data-toggle="tooltip" title="{{ data.records[employee.id].note }}">
+                                                Ghi chú: {{ data.records[employee.id].note|truncate(20) }}
+                                            </small>
+                                            {% endif %}
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Bảng tổng hợp -->
+                        <div class="mt-4">
+                            <h4>Tổng hợp</h4>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 200px;">Nhân viên</th>
+                                            <th>Tổng ngày công</th>
+                                            <th>Số ngày nghỉ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for emp_id, data in summary_data.items() %}
+                                        <tr>
+                                            <td>{{ data.full_name }}</td>
+                                            <td>{{ data.days_worked }}</td>
+                                            <td>{{ data.days_absent }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tab Chi tiết chấm công -->
+                    <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+                        <form id="details-filter-form" class="form-row mb-3">
+                            <div class="form-group col-md-3">
+                                <label for="details-user-id">Nhân viên:</label>
+                                <select id="details-user-id" class="form-control select2">
+                                    <option value="all">Tất cả</option>
+                                    {% for employee in employees %}
+                                    <option value="{{ employee.id }}">{{ employee.full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="details-period">Khoảng thời gian:</label>
+                                <select id="details-period" class="form-control select2">
+                                    <option value="week">Theo tuần</option>
+                                    <option value="month">Theo tháng</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3 align-self-end">
+                                <button type="button" id="filter-btn" class="btn btn-primary mr-2">Lọc</button>
+                                <button type="button" id="add-record-btn" class="btn btn-success">Thêm chấm công</button>
+                            </div>
+                        </form>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="details-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 200px;">Nhân viên</th>
+                                        <th style="width: 120px;">Ngày</th>
+                                        <th style="width: 100px;">Vào Sáng</th>
+                                        <th style="width: 100px;">Ra Sáng</th>
+                                        <th style="width: 100px;">Vào Chiều</th>
+                                        <th style="width: 100px;">Ra Chiều</th>
+                                        <th style="width: 120px;">Tổng giờ làm</th>
+                                        <th style="width: 200px;">Ảnh</th>
+                                        <th style="width: 200px;">Ghi chú</th>
+                                        <th style="width: 150px;">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Modal chi tiết chấm công -->
+<div class="modal fade" id="attendanceDetailsModal" tabindex="-1" role="dialog" aria-labelledby="attendanceDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title" id="attendanceDetailsModalLabel">Chi tiết chấm công</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Nhân viên:</strong> <span id="employee-name"></span></p>
+                <p><strong>Ngày:</strong> <span id="date"></span></p>
+                <p><strong>Vào Sáng:</strong> <span id="checkin-morning"></span> <small id="checkin-morning-note" class="text-muted"></small></p>
+                <p><strong>Ra Sáng:</strong> <span id="checkout-morning"></span> <small id="checkout-morning-note" class="text-muted"></small></p>
+                <p><strong>Vào Chiều:</strong> <span id="checkin-afternoon"></span> <small id="checkin-afternoon-note" class="text-muted"></small></p>
+                <p><strong>Ra Chiều:</strong> <span id="checkout-afternoon"></span> <small id="checkout-afternoon-note" class="text-muted"></small></p>
+                <p><strong>Tổng giờ làm:</strong> <span id="hours-worked"></span></p>
+                <p><strong>Ảnh chụp:</strong></p>
+                <div id="photos"></div>
+                <input type="hidden" id="user-id">
+                <input type="hidden" id="attendance-date">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal chỉnh sửa chấm công -->
+<div class="modal fade" id="editAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="editAttendanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title" id="editAttendanceModalLabel">Chỉnh sửa chấm công</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-attendance-form">
+                    <input type="hidden" id="edit-record-id" name="record_id">
+                    <div class="form-group">
+                        <label for="edit-timestamp">Thời gian (HH:MM:SS)</label>
+                        <input type="text" class="form-control" id="edit-timestamp" name="timestamp" placeholder="VD: 08:00:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-type">Loại</label>
+                        <select class="form-control select2" id="edit-type" name="type" required>
+                            <option value="Vào Sáng">Vào Sáng</option>
+                            <option value="Ra Sáng">Ra Sáng</option>
+                            <option value="Vào Chiều">Vào Chiều</option>
+                            <option value="Ra Chiều">Ra Chiều</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-note">Ghi chú</label>
+                        <textarea class="form-control" id="edit-note" name="note" rows="4" placeholder="Nhập ghi chú (nếu có)"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-photo">Ảnh mới (nếu có)</label>
+                        <input type="file" class="form-control-file" id="edit-photo" name="photo" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal thêm chấm công -->
+<div class="modal fade" id="addAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="addAttendanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title" id="addAttendanceModalLabel">Thêm chấm công</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="add-attendance-form">
+                    <div class="form-group">
+                        <label for="add-user-id">Nhân viên</label>
+                        <select class="form-control select2" id="add-user-id" name="user_id" required>
+                            {% for employee in employees %}
+                            <option value="{{ employee.id }}">{{ employee.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-date">Ngày</label>
+                        <input type="date" class="form-control" id="add-date" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-timestamp">Thời gian (HH:MM:SS)</label>
+                        <input type="text" class="form-control" id="add-timestamp" name="timestamp" placeholder="VD: 08:00:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-type">Loại</label>
+                        <select class="form-control select2" id="add-type" name="type" required>
+                            <option value="Vào Sáng">Vào Sáng</option>
+                            <option value="Ra Sáng">Ra Sáng</option>
+                            <option value="Vào Chiều">Vào Chiều</option>
+                            <option value="Ra Chiều">Ra Chiều</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-note">Ghi chú</label>
+                        <textarea class="form-control" id="add-note" name="note" rows="4" placeholder="Nhập ghi chú (nếu có)"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-photo">Ảnh (nếu có)</label>
+                        <input type="file" class="form-control-file" id="add-photo" name="photo" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Thêm</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal xem ảnh -->
+<div class="modal fade" id="photoModal" tabindex="-1" role="dialog" aria-labelledby="photoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title" id="photoModalLabel">Ảnh chấm công</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img id="modal-photo" src="" style="width: 100%; height: auto;">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- CSS tùy chỉnh -->
+<style>
+    .table th, .table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+    .record-photo {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        margin: 0 2px;
+        cursor: pointer;
+        border: 2px solid #28a745;
+        border-radius: 4px;
+    }
+    .record-photo.missing {
+        border: 2px solid #6c757d;
+        background: #e9ecef;
+    }
+    .time-present {
+        color: #28a745;
+        font-weight: 600;
+    }
+    .time-missing {
+        color: #dc3545;
+        font-style: italic;
+    }
+    .photo-container {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .btn-group .btn {
+        font-size: 0.875rem;
+    }
+    .dropdown-menu {
+        min-width: 120px;
+    }
+    .dropdown-item i {
+        margin-right: 5px;
+    }
+</style>
+<!-- JS tùy chỉnh -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script>
+    $(document).ready(function() {
+        // Khởi tạo Select2
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+        // Khởi tạo tooltip
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+{% endblock %}

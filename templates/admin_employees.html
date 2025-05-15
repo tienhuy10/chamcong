@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Quản lý nhân viên</h1>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">Danh sách nhân viên</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-success" id="add-employee-btn"><i class="fas fa-plus"></i> Thêm nhân viên</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="employees-table" class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">STT</th>
+                                <th>Họ tên</th>
+                                <th>Tên đăng nhập</th>
+                                <th>Bộ phận</th>
+                                <th>Chức vụ</th>
+                                <th>Email</th>
+                                <th>Số điện thoại</th>
+                                <th style="width: 100px;">Trạng thái</th>
+                                <th style="width: 150px;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in employees %}
+                            <tr data-user-id="{{ employee.id }}">
+                                <td>{{ loop.index }}</td>
+                                <td>{{ employee.full_name }}</td>
+                                <td>{{ employee.username }}</td>
+                                <td>{{ employee.department or 'Chưa xác định' }}</td>
+                                <td>{{ employee.position or 'Chưa xác định' }}</td>
+                                <td>{{ employee.email or 'Chưa xác định' }}</td>
+                                <td>{{ employee.phone or 'Chưa xác định' }}</td>
+                                <td>
+                                    <input type="checkbox" class="toggle-active" data-user-id="{{ employee.id }}" 
+                                           {% if employee.is_active %}checked{% endif %} 
+                                           data-toggle="toggle" data-on="Kích hoạt" data-off="Vô hiệu" 
+                                           data-onstyle="success" data-offstyle="danger">
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary edit-employee-btn" data-user-id="{{ employee.id }}"><i class="fas fa-edit"></i> Sửa</button>
+                                    <button class="btn btn-sm btn-danger delete-employee-btn" data-user-id="{{ employee.id }}"><i class="fas fa-trash"></i> Xóa</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal thêm/sửa nhân viên -->
+<div class="modal fade" id="employeeModal" tabindex="-1" role="dialog" aria-labelledby="employeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title" id="employeeModalLabel">Thêm nhân viên</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="employeeForm">
+                <div class="modal-body">
+                    <input type="hidden" name="user_id" id="user_id">
+                    <div class="form-group">
+                        <label for="username">Tên đăng nhập <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Mật khẩu <span class="text-danger" id="password-required">*</span></label>
+                        <input type="password" class="form-control" id="password" name="password">
+                    </div>
+                    <div class="form-group">
+                        <label for="full_name">Họ tên <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Bộ phận</label>
+                        <input type="text" class="form-control" id="department" name="department">
+                    </div>
+                    <div class="form-group">
+                        <label for="position">Chức vụ</label>
+                        <input type="text" class="form-control" id="position" name="position">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Số điện thoại</label>
+                        <input type="text" class="form-control" id="phone" name="phone">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Địa chỉ</label>
+                        <input type="text" class="form-control" id="address" name="address">
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Vai trò <span class="text-danger">*</span></label>
+                        <select class="form-control select2" id="role" name="role" required>
+                            <option value="employee">Nhân viên</option>
+                            <option value="admin">Quản trị</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="is_active">Trạng thái</label>
+                        <select class="form-control select2" id="is_active" name="is_active">
+                            <option value="1">Kích hoạt</option>
+                            <option value="0">Vô hiệu</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap4-theme/1.5.4/select2-bootstrap4.min.css">
+<style>
+    .select2-container--default .select2-selection--single {
+        height: calc(1.5em + .75rem + 2px);
+        padding: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: calc(1.5em + .75rem);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script src="{{ url_for('static', filename='js/employees.js') }}"></script>
+<script>
+    $(document).ready(function() {
+        // Khởi tạo DataTables
+        $('#employees-table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json"
+            },
+            "pageLength": 10,
+            "order": [[0, "asc"]]
+        });
+
+        // Khởi tạo Select2
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+
+        // Khởi tạo Toastr
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "3000"
+        };
+    });
+</script>
+{% endblock %}
